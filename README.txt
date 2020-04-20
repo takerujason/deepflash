@@ -13,8 +13,9 @@ Jian Wang, Miaomiao Zhang. IEEE Conference on Computer Vision and Pattern Recogn
 
 ## Install (required)
 Python 3.4 (or >= 3.4) 
-PyTorch 1.2 (or >= 1.2) by Pip3 
+PyTorch 1.2 (or >= 1.2) by pip3 
 CUDA 9.0 (https://developer.nvidia.com/cuda-90-download-archive)
+
 ## Install (optional)
 PyCA (https://bitbucket.org/scicompanat/pyca/src/master/) 
 
