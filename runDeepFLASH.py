@@ -7,16 +7,10 @@ from torch.utils.data import DataLoader
 import SimpleITK as sitk
 
 
-
-
-
 def runExp(config):
     #%% 1. Set configration and device    
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    # Create experiment result folder    
-    # expPath, expName = createExpFolder(resultPath, configName, create_subFolder=True, addDate = addDate)
-    # saveConfig2Json(config, expPath + '/config.json')
 
     #%% 2. Set Data
     import numpy as np
