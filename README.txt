@@ -12,9 +12,9 @@ DeepFLASH: An Efficient Network for Learning-basedMedical Image Registration.
 Jian Wang, Miaomiao Zhang. IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2020.
 
 ## Install (required)
-Python 3.4 (or >= 3.4)
-PyTorch 1.2 (or >= 1.2)
-CUDA 9.0
+Python 3.4 (or >= 3.4) 
+PyTorch 1.2 (or >= 1.2) by Pip3 
+CUDA 9.0 (https://developer.nvidia.com/cuda-90-download-archive)
 ## Install (optional)
 PyCA (https://bitbucket.org/scicompanat/pyca/src/master/) 
 
