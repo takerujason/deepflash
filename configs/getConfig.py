@@ -50,6 +50,7 @@ def getConfig(name):
                         'para': None
                         }
         }
+        
     elif name == 'debug':
         ae_config = getConfig('default')
         ae_config['data']['augmentation'] = None
