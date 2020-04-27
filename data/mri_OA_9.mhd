@@ -1,0 +1,14 @@
+ObjectType = Image
+NDims = 3
+BinaryData = True
+BinaryDataByteOrderMSB = False
+TransformMatrix = -1 0 0 0 -1 0 0 0 1
+Offset = 0 0 0
+CenterOfRotation = 0 0 0
+AnatomicalOrientation = LPI
+Offset = 0 0 0 
+ElementSpacing = 1 1 1 
+DimSize = 128 128 128
+ElementNumberOfChannels = 1
+ElementType = MET_FLOAT
+ElementDataFile = mri_OA_9.raw

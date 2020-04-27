@@ -1,0 +1,1 @@
+python3 predict.py --gpu 0 ../data/deformed0.nii.gz ../data/deformed8.nii.gz --model_file ../models/cvpr_cc.h5 --out_img ./prediction.nii.gz 

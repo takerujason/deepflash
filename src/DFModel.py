@@ -6,11 +6,12 @@ import torch
 from src.DFNet import getDFNET
 from torch.utils.data import DataLoader
 import numpy as np
-# https://github.com/ipython/ipython/issues/10627
 import matplotlib; matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import SimpleITK as sitk
-#from tensorboardX import SummaryWriter
+import nibabel as nib
+from multiprocessing import Process, Pool
+
 class DFModel(object):
     def __init__(self, net_config, loss_config, device = torch.device("cpu")):
         # Set network structure
@@ -19,9 +20,6 @@ class DFModel(object):
         self.net.to(device)
         self.criterion = get_loss(loss_config)
         self.continueTraining = False
-    
-    
-    #def train(self, training_dataset, training_config, groundtruth_dataset, valid_img = None, expPath = None):
     def train(self, training_dataset, training_config, valid_img = None, expPath = None):
         # Create dataloader
         training_dataloader = DataLoader(training_dataset, batch_size=training_config['batch_size'],
@@ -37,9 +35,6 @@ class DFModel(object):
             prtDigitalLen = len(str(training_config["epochs_num"]))
             valid_truth = slice_img(valid_img, training_config['valid_check'])
             plt.imsave(expPath + '/valid_img/valid_epoch_' + '0'.zfill(prtDigitalLen) + '.png', np.squeeze(valid_truth), cmap='gray')
-        
-
-
         # Training process
         start_time = time.time()
         loss_history = np.zeros([0])
@@ -84,27 +79,18 @@ class DFModel(object):
         for j, epoch in enumerate(range(1, training_config['epochs_num']  + 1)):
             for i, data in enumerate(training_dataloader):      
                 img = data['source'].to(self.device, dtype = torch.float)
+                # print (img.shape)
                 img1 = data['target'].to(self.device, dtype = torch.float)
                 #label = (1, 1, 16, 16, 16)
                 label = data['gtru'].to(self.device, dtype = torch.float)
 
-                # outfile = './out%d.mhd'%i
-                # im = sitk.GetImageFromArray(img[9], isVector=False)
-                # sitk.WriteImage(im, outfile, True) 
-
-                # source = sitk.GetImageFromArray(img, isVector=False)
-                # target = sitk.GetImageFromArray(img1, isVector=False)
-                # sitk.WriteImage(source, './source_%s.mhd'%(j*(training_config['epochs_num'])+i), True)
-                # sitk.WriteImage(target, './target_%s.mhd'%(j*(training_config['epochs_num'])+i), True)
-
-                # print(label.shape)
-#                print(img.device)
-                #img2 = torch.cat((img, img1), 1)
                 # ===================forward=====================
                 output = self.net(img,img1)
-
+                #output2 = self.net(img,img1)
 #               loss = self.criterion(output, img[:,0:1,:,:,:])
-                loss = self.criterion(output, label)
+                loss1 = self.criterion(output, label)
+                #loss2 = self.criterion(output2, label)
+                loss = loss1 ; #+loss2;
                 # ===================backward====================
                 self.optimizer.zero_grad()
                 loss.backward()
@@ -113,44 +99,31 @@ class DFModel(object):
                 TotalEnergy += loss.detach().numpy()
                 
 
-                if (j%20 == 0) and (i == len(training_dataloader)-1):
-                    
-                    write_file = "output%s.csv"%j
-                    with open(write_file, "w") as output:
-                        for idx, line in enumerate(testing_dataloader):
-                            testsrc = line['source'].to(self.device, dtype = torch.float)
-                            testtar = line['target'].to(self.device, dtype = torch.float)
-
-                            # print (testtar.shape)
-                            # outfile = './out%d.mhd'%idx
-                            # im = sitk.GetImageFromArray(testtar, isVector=False)
-                            # sitk.WriteImage(im, outfile, True) 
-
-                            testoutput = self.net(testsrc,testtar)
-                            testoutput = testoutput.to(torch.device('cpu')).detach().numpy()
-                            testsave = testoutput.reshape(1)
-                            output.write(str(testsave)+'\n')
-
-                    # with open('prediction%s.csv'%j,'wb') as file:
-                    #     for line in text:
-                    #         file.write(line)
-                    #         file.write('\n')
-                    # print(output.shape)
-                    # pred = np.moveaxis(output.to(torch.device('cpu')).detach().numpy(),0,-1) 
+                if (j%5 == 0) and (i == len(training_dataloader)-1):
+                    pred = np.moveaxis(output.to(torch.device('cpu')).detach().numpy(),0,-1) 
                     # print (pred.shape)
-                    # pred = array(pred)
-                    # print(pred)
-                    # im = sitk.GetImageFromArray(pred[:,:,:,1].reshape(17,17), isVector=False)
-                    # sitk.WriteImage(im, './prediction_%s.mhd'%j, True)
+                    pred = np.array(pred)
+                    print(pred.shape)
+                    im = sitk.GetImageFromArray(pred[:,:,:,0].reshape(2,17,17), isVector=False)
+                    # image = nib.load('./prediction_0.nii')
+                    # header_info = image.header
+                    # print(header_info)
+                    # header_info['pixdim'][1:4]  = [3,17,17]
+                    # # c = np.array(image.get_fdata())
+                    # # Use the new `header_info` before writing
+                    # x = nib.Nifti1Image(pred, image.affine, header_info)
+                    # nib.save(x, 'something.nii.gz')
+                    sitk.WriteImage(im, './prediction_%s.nii'%j, True)
+                    # im.to_filename(os.path.join('build','test4d.nii.gz'))
                     # pred2 = np.moveaxis(label.to(torch.device('cpu')).detach().numpy(),0,-1) 
-                    # im2 = sitk.GetImageFromArray(pred2[:,:,:,1].reshape(17,17), isVector=False)
+                    # im2 = sitk.GetImageFromArray(pred2[:,:,:,0].reshape(17,17), isVector=False)
                     # sitk.WriteImage(im2, './groundtruth_%s.mhd'%j, True)
             # ===================log========================            
-            print(repr(j) + " Epoch:  " + " Energy:  "+ repr(TotalEnergy))
+            print(repr(j) + " Epoch:  " + " Energy:  "+ repr(TotalEnergy));
             
 
             TotalEnergy=0
-            report_epochs_num = training_config.get('report_per_epochs', 10)            
+            # report_epochs_num = training_config.get('report_per_epochs', 10)            
         print('Training finished')
         return loss
     def pred(self, dataset, scale):
